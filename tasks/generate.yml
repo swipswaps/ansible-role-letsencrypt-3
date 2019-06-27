@@ -1,0 +1,60 @@
+- name: Create directory for keys certs and chains
+  file:
+    path: "/etc/letsencrypt/live/{{ vhost['servername'] }}"
+    recurse: true
+    mode: 755
+    state: directory
+
+# The fields in this CSR really don't matter since its self-signed anyway
+- name: Generate CSR
+  openssl_csr:
+    common_name: '{{ vhost["servername"] }}'
+    path: "/etc/letsencrypt/csr/{{ vhost['servername'] }}.csr"
+    privatekey_path: "{{ le_selfsign_base_dir}}/{{ le_selfsign_key_name }}"
+
+# Prevent overwriting existing cert file
+- name: stat cert
+  stat:
+    path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem"
+  register: cert_file
+
+- name: Generate self-signed certs 
+  openssl_certificate:
+    csr_path: "/etc/letsencrypt/csr/{{ vhost['servername'] }}.csr"
+    path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem"
+    privatekey_path: "{{ le_selfsign_base_dir}}/{{ le_selfsign_key_name }}"
+    provider: selfsigned
+  when: not cert_file.stat.exists
+
+# Prevent overwriting existing privkey symlink
+- name: stat key
+  stat:
+    path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/privkey.pem"
+  register: key_file
+
+- name: Link key
+  file:
+    dest: "/etc/letsencrypt/live/{{ vhost['servername'] }}/privkey.pem"
+    src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
+    state: link
+  when: not key_file.stat.exists
+
+# Prevent overwriting existing chain symlink
+- name: stat chain
+  stat:
+    path: '/etc/letsencrypt/live/{{ vhost["servername"] }}/chain.pem'
+  register: chain_file
+
+- name: Link chain
+  file:
+    dest: '/etc/letsencrypt/live/{{ vhost["servername"] }}/chain.pem'
+    src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
+    state: link
+  when: not chain_file.stat.exists
+
+# Generate script that should be ran once DNS cutover happens for this specific domain
+- name: Generate self-signed -> LetsEncrypt migration script
+  template:
+    src: cutover.sh.j2
+    dest: "{{ le_migrate_script_basepath }}/{{ le_migrate_script_prefix }}-{{ vhost['servername'] }}.sh"
+    mode: 0700

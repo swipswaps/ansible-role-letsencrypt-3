@@ -1,0 +1,6 @@
+# Main ansible playbook which defines which roles to apply to which servers.
+- hosts: webservers
+  become: true
+  roles:
+    - "tag1consulting.letsencrypt"
+    - "geerlingguy.apache"
