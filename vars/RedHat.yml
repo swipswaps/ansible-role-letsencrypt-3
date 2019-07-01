@@ -1,7 +1,6 @@
-docker_package: docker
+docker_package: docker-ce
 certbot_package: certbot
 certbot_binary: certbot
-certbot_unit_name: certbot
-webserver_unit_name: httpd
-pip_package: python3-pip
+le_webserver_unit_name: httpd
+pip_package: python36-pip
 pip_exec_name: pip3

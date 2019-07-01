@@ -3,25 +3,30 @@
 # This allows us to use ACME protocol to spoof a valid LetsEncrypt endpoint locally
 # to mimic production usage of LetsEncrypt cutover scripts
 
-- name: Install Docker
-  package:
-    name: "{{ docker_package }}"
+- name: Setup Docker
+  include_role:
+    name: "geerlingguy.docker"
 
-- name: Install pip
-  package:
-    name: "{{ pip_package }}"
-    state: present
+#- name: Install Docker
+  #package:
+    #name: "{{ docker_package }}"
 
-- name: Install docker-compose with pip
-  pip: 
-    name: docker-compose
-    executable: "{{ pip_exec_name }}"
+#- name: Install pip
+  #package:
+    #name: "{{ pip_package }}"
+    #state: present
+
+#- name: Install docker-compose with pip
+  #pip: 
+    #name: docker-compose
+    #executable: "{{ pip_exec_name }}"
 
 - name: Clone boulder source
   git:
     repo: https://github.com/letsencrypt/boulder
     dest: /root/boulder
-    update: no
+    force: yes
+  become: true
 
 - name: Override challenge ports to normal (80,443)
   copy:
@@ -39,5 +44,10 @@
     dest: /root/boulder/test/rate-limit-policies.yml
 
 - name: Start boulder server (This takes a long time. Seriously, go get some coffee)
-  docker_service: 
-    project_src: /root/boulder
+  shell: > 
+    PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:."
+    docker-compose up -d
+  args:
+    chdir: /root/boulder
+    executable: /bin/bash
+  become: true

@@ -6,3 +6,5 @@ le_migrate_script_prefix: migrate
 le_selfsign_base_dir: /etc/ssl/
 le_selfsign_key_name: root-key.pem
 le_selfsign_chain_name: fake-chain.pem
+le_testing: false
+le_webserver_unit_name: apache2

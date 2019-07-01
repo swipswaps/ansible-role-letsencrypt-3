@@ -4,6 +4,9 @@
 - name: Include OS-specific variables
   include_vars: "{{ ansible_os_family }}.yml"
 
+- name: Perform OS-specific tasks
+  include_tasks: "{{ ansible_os_family }}.yml"
+
 - name: Initialize system paths and permissions
   become: true
   import_tasks: init.yaml
@@ -43,18 +46,19 @@
   become: true
   cron: 
     day: '*/7'
-    job: certbot renew --post-hook "systemctl reload {{ webserver_unit_name }}"
+    job: certbot renew --post-hook "systemctl reload {{ le_webserver_unit_name }}"
 
 - name: Disable default certbot timer
   become: true
   service:
-    name: "{{ certbot_unit_name }}".timer
+    name: "{{ certbot_unit_name }}.timer"
     enabled: no
     state: stopped
+  when: certbot_unit_name is defined
 
 - name: Setup boulder server for testing
   import_tasks: acme-test.yaml
   become: true
-  when: testing
+  when: le_testing
   tags:
     - letsencrypt

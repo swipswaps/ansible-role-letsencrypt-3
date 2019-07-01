@@ -1,8 +1,0 @@
-# Apache
-# Github: https://github.com/geerlingguy/ansible-role-apache
-- src: "geerlingguy.apache"
-  version: "3.0.3"
-
-- src: "tag1consulting.letsencrypt"
-  version: "first_branch"
-

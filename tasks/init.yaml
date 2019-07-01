@@ -1,11 +1,6 @@
 ---
 # Setup directory structure and set permissions
 
-- name: update apt cache
-  apt:
-    cache_valid_time: 3600
-  when: ansible_os_family == "Debian"
-
 - name: Install CertBot
   package:
     name: "{{ certbot_package }}"

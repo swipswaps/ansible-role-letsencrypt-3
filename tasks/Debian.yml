@@ -1,0 +1,3 @@
+- name: update apt cache
+  apt:
+    cache_valid_time: 3600
