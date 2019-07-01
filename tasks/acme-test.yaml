@@ -25,6 +25,7 @@
   git:
     repo: https://github.com/letsencrypt/boulder
     dest: /root/boulder
+    version: release-2019-06-28
     force: yes
   become: true
 
