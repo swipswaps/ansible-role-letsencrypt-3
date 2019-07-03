@@ -1,6 +1,3 @@
-docker_package: docker.io
 certbot_package: certbot
 certbot_binary: certbot
 certbot_unit_name: certbot
-pip_package: python3-pip
-pip_exec_name: pip3

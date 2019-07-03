@@ -52,8 +52,8 @@ Role Variables
 
 | Variables | Description | Default |
 |-|-|-|
-|`le_hosts_ssl`|List of hosts to generate self-signed certs and migration scripts for. This array of hashes only needs to have the `servername` and `documentroot` variables set. See the example playbook for an example.|`None`|
 |`le_admin_mailto`|Email address for LetsEncrypt to send notices about protocol changes and expiry notices|`sysops@tag1consulting.com`| 
+|`le_hosts_ssl`|List of hosts to generate self-signed certs and migration scripts for. This array of hashes only needs to have the `servername` and `documentroot` variables set. See the example playbook for an example.|`None`|
 |`le_migrate_script_basepath`|Directory to store the migration scripts|`/root/`|
 |`le_migrate_script_prefix`|Prefix to script filename|`migrate`|
 |`le_selfsign_base_dir`|Directory to store all files related to self-signing certificates|`/etc/ssl/`|
