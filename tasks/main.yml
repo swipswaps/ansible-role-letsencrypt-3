@@ -35,7 +35,7 @@
       tags:
         - letsencrypt
       become: true
-  loop: '{{ apache_vhosts_ssl }}'
+  loop: '{{ le_hosts_ssl }}'
   loop_control:
     loop_var: vhost
   tags:

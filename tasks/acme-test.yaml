@@ -7,20 +7,6 @@
   include_role:
     name: "geerlingguy.docker"
 
-#- name: Install Docker
-  #package:
-    #name: "{{ docker_package }}"
-
-#- name: Install pip
-  #package:
-    #name: "{{ pip_package }}"
-    #state: present
-
-#- name: Install docker-compose with pip
-  #pip: 
-    #name: docker-compose
-    #executable: "{{ pip_exec_name }}"
-
 - name: Clone boulder source
   git:
     repo: https://github.com/letsencrypt/boulder

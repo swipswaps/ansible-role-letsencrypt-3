@@ -2,10 +2,6 @@
   import_role:
     name: linuxhq.ius
 
-#- name: Install Certbot
-  #yum:
-    #name: "{{ certbot_package }}"
-
 - name: Install Git
   yum:
     name: git
