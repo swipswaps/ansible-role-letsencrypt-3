@@ -25,6 +25,7 @@
     -req -days 3650
     -out /etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem
   when: not cert_file.stat.exists
+  notify: restart apache
 
 # Prevent overwriting existing privkey symlink
 - name: stat key for {{ vhost['servername'] }} 
@@ -38,6 +39,7 @@
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
     state: link
   when: not key_file.stat.exists
+  notify: restart apache
 
 # Prevent overwriting existing chain symlink
 - name: Stat chain for {{ vhost['servername'] }} 
@@ -51,6 +53,7 @@
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
     state: link
   when: not chain_file.stat.exists
+  notify: restart apache
 
 # Generate script that should be ran once DNS cutover happens for this specific domain
 - name: Generate self-signed -> LetsEncrypt migration script for {{ vhost['servername'] }} 
