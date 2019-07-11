@@ -12,19 +12,15 @@
     -subj /CN={{ vhost["servername"] }} 
     -out /etc/letsencrypt/csr/{{ vhost['servername'] }}.csr
 
-# Prevent overwriting existing cert file
-- name: Stat {{ vhost['servername'] }} certificate
-  stat:
-    path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem"
-  register: cert_file
-
+# Manually generate self-signed cert
 - name: Generate self-signed cert for {{ vhost['servername'] }} 
   command: > 
     openssl x509 -signkey {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}
     -in /etc/letsencrypt/csr/{{ vhost['servername'] }}.csr
     -req -days 3650
     -out /etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem
-  when: not cert_file.stat.exists
+  args:
+    creates: /etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem
   notify: restart apache
 
 # Prevent overwriting existing privkey symlink
@@ -33,6 +29,7 @@
     path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/privkey.pem"
   register: key_file
 
+# Link private key to the key generated before this task file was included
 - name: Link key for {{ vhost['servername'] }} 
   file:
     dest: "/etc/letsencrypt/live/{{ vhost['servername'] }}/privkey.pem"
@@ -47,6 +44,7 @@
     path: '/etc/letsencrypt/live/{{ vhost["servername"] }}/chain.pem'
   register: chain_file
 
+# Link bogus chain to the chain copied over before this task file was included
 - name: Link chain for {{ vhost['servername'] }} 
   file:
     dest: '/etc/letsencrypt/live/{{ vhost["servername"] }}/chain.pem'

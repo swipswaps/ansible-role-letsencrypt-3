@@ -1,3 +1,8 @@
+- name: Running update-ca-certificates
+  become: true
+  shell: update-ca-certificates
+
 - name: update apt cache
   apt:
     cache_valid_time: 3600
+

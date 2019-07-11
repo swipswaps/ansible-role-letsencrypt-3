@@ -1,4 +1,5 @@
-- name: Add epel repo
+# Needed to install python-pip
+- name: Add IUS repo
   import_role:
     name: linuxhq.ius
 

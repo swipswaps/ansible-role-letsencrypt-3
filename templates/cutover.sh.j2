@@ -8,13 +8,7 @@ LE_PATH='/etc/letsencrypt'
 WEBROOT='{{ vhost['documentroot'] }}'
 PREHOOK="rm -rf /etc/letsencrypt/live/{{ vhost['servername'] }}"
 DOMAIN='{{ vhost['servername'] }}'
-CERTBOT='{{ certbot_binary }}'
-
-# Set SERVER if there is a docker container listening on port 4000
-# SERVER will be null variable if in production
-if netstat -tulpn | grep -P '4000.*docker' >/dev/null ; then
-  SERVER=(--server http://localhost:4000/directory)
-fi
+CERTBOT='/root/.certbot_env/bin/certbot'
 
 # Legally ripped from https://www.shellscript.sh/tips/banner/
 banner()
@@ -39,6 +33,15 @@ reload_server() {
 
 ################ BEGIN SCRIPT ################
 
+# Enter virtualenv for certbot
+. /root/.certbot_env/bin/activate
+
+# Set SERVER if there is a web server listening on port 4000
+# SERVER will be null variable if in production
+if curl -s localhost:4000 > /dev/null ; then
+  SERVER=(--server http://localhost:4000/directory)
+fi
+
 # Check if a LetsEncrypt cert for the domain already exists.
 if $CERTBOT certificates | grep -P "Certificate Name: ${DOMAIN}$" >/dev/null ; then
   banner "YOU ALREADY HAVE A VALID LETSENCRYPT CERTIFICATE FOR $DOMAIN."
@@ -56,9 +59,6 @@ if ! [ -z $FAIL ]; then
 	exit 1
 fi
 
-banner "BACKING UP $LE_PATH TO /root."
-cp -R --preserve=links "$LE_PATH" /root
-
 # Dry run first (if in production)
 if [ -z $SERVER ]; then
 	banner "ATTEMPTING DRY RUN BEFORE OVERWRITING SELF-SIGNED CERTIFICATE FOR $DOMAIN."
@@ -74,6 +74,10 @@ else
 	banner "DETECTED BOULDER SERVER. SKIPPING DRY RUN."
 fi
 
+# Backup all Certs
+banner "BACKING UP $LE_PATH TO /root."
+cp -R --preserve=links "$LE_PATH" /root
+
 banner "ATTEMPTING TO GET LETSENCRYPT CERTIFICATE FOR $DOMAIN"
 
 if $CERTBOT certonly --webroot --agree-tos --no-eff-email --email $EMAIL -w $WEBROOT --cert-name $DOMAIN  -d $DOMAIN --pre-hook "$PREHOOK" ${SERVER[@]} ; then
@@ -81,7 +85,7 @@ if $CERTBOT certonly --webroot --agree-tos --no-eff-email --email $EMAIL -w $WEB
 	reload_server
 else
 	banner "LETSENCRYPT CERTIFICATE FAILED TO INSTALL."
-	# Set FAIL because prehook deletes certificates and need to restore from backup.
+	# Set FAIL because the certbot prehook I set deletes certificates and need to restore from backup.
 	FAIL=1
 fi
 

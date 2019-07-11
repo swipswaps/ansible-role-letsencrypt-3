@@ -1,3 +1,2 @@
-certbot_package: certbot
-certbot_binary: certbot
+docker_package: docker
 le_webserver_unit_name: httpd

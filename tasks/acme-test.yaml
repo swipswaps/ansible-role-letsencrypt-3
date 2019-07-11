@@ -3,9 +3,22 @@
 # This allows us to use ACME protocol to spoof a valid LetsEncrypt endpoint locally
 # to mimic production usage of LetsEncrypt cutover scripts
 
-- name: Setup Docker
+- name: Setup pip
   include_role:
-    name: "geerlingguy.docker"
+    name: "geerlingguy.pip"
+  vars:
+    pip_install_packages:
+      - name: docker
+      - name: docker-compose
+
+- name: Install Docker
+  package:
+    name: '{{ docker_package }}'
+
+- name: Make sure docker.service is running
+  service:
+    name: docker
+    state: started
 
 - name: Clone boulder source
   git:
@@ -29,6 +42,12 @@
   copy:
     src: rate-limit-policies.yml
     dest: /root/boulder/test/rate-limit-policies.yml
+
+# Needed to start containers since two of them need write access.
+- name: Set SELinux context
+  shell: chcon -Rt container_file_t /root/boulder
+  when: ansible_os_family == 'RedHat'
+
 
 - name: Start boulder server (This takes a long time. Seriously, go get some coffee)
   shell: > 

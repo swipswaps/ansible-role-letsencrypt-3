@@ -1,10 +1,15 @@
 ---
 # Setup directory structure and set permissions
 
-- name: Install CertBot
+- name: Install python-virtualenv
   package:
-    name: "{{ certbot_package }}"
-    state: present
+    name: python-virtualenv
+
+- name: Create certbot virtualenv and install certbot
+  pip:
+    virtualenv: /root/.certbot_env
+    name:
+      - certbot
 
 - name: Create directory for selfsign key
   file:
