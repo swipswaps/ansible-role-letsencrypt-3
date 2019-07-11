@@ -37,7 +37,7 @@ In the case of the above example, the tag1-letsencrypt role will read the
 - Puts a bogus chain at `/etc/letsencrypt/live/mywebsite.mydomain/chain.pem` 
 - Generates a script at `/root/migrate-mywebsite.mydomain.sh` which will do the following in order:
     - Check if the webserver is currently running properly. If not, exit
-    - Backup all certificates to /root/letsencrypt
+    - Backup all certificates to `/root/letsencrypt`
     - Perform a dry-run with LetsEncrypt production servers, or skips the dry run if there is a local ACME testing server
        - Exits script if it fails
     - Perform a real ACME client run (there is a hook that deletes the self-signed certs, which is why the backup is needed)
@@ -65,7 +65,7 @@ Role Variables
 Example Playbook
 ----------------
 
-Run the role with the `never` tag enabled in testing, run it normally in production. The `never` tag will setup a local
+Run the role with the `le_testing` varieble set to `true` in testing, run it normally in production. The `le_testing` variable will setup a local
 ACME server with nearly unlimited rates and the cutover scripts will use that instead of LetsEncrypt's servers.
 
 In `host_vars/test.com`:
@@ -106,7 +106,11 @@ In a tasks file:
 ```YAML
 - name: Setup letsencrypt
   import_role: 
-    name: tag1-letsencrypt
+    name: 
+      - tag1-letsencrypt
+      # The letsencrypt role should be ran before intalling and starting a webserver
+      # geerlingguy.apache will fail to start the webserver if there are no certs installed yet.
+      - some_webserver_role
 ```
 
 **OR**
@@ -116,7 +120,8 @@ In a playbook:
 ```YAML
 - hosts: webservers
   roles:
-     - { role: tag1-letsencrypt }
+     - tag1-letsencrypt
+     - some_webserver_role
 ```
 
 Testing
@@ -154,7 +159,8 @@ Any subsequent runs of  `/root/migrate-test.com.sh` will greet you with an error
 Dependencies
 ------------
 
-A webserver with a systemd unit that supports reloading configuration.
+- A webserver with a systemd unit that supports reloading configuration.
+- `geerlingguy.pip`
 
 
 License
