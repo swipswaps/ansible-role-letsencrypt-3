@@ -32,6 +32,7 @@ is wrong, the ACME challenge will fail.
 In the case of the above example, the tag1-letsencrypt role will read the
 `le_hosts_ssl` variable to create the following changes on the VM:
 
+- Spin up a mock ACME server (if `le_testing==true`)
 - Puts a certificate at `/etc/letsencrypt/live/mywebsite.mydomain/cert.pem`
 - Puts a private key at `/etc/letsencrypt/live/mywebsite.mydomain/privkey.pem`
 - Puts a bogus chain at `/etc/letsencrypt/live/mywebsite.mydomain/chain.pem` 
