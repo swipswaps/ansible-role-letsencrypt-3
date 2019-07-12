@@ -36,7 +36,7 @@
       tags:
         - letsencrypt
       become: true
-  loop: '{{ le_hosts_ssl }}'
+  loop: "{{ le_hosts_ssl }}"
   loop_control:
     loop_var: vhost
   tags:
@@ -44,7 +44,7 @@
 
 - name: Add cronjob for cert renewals
   cron: 
-    day: '*/7'
+    day: "*/7"
     job: certbot renew --post-hook "systemctl reload {{ le_webserver_unit_name }}"
   become: true
   tags:

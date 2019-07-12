@@ -13,25 +13,25 @@
 
 - name: Create directory for selfsign key
   file:
-    dest: '{{ le_selfsign_base_dir  }}'
+    dest: "{{ le_selfsign_base_dir  }}"
     mode: 755
     recurse: true
     state: directory
 
 - name: Create directory for keys
   file:
-    dest: '/etc/letsencrypt/private'
+    dest: "/etc/letsencrypt/private"
     mode: 755
     state: directory
 
 - name: Create directory for certs
   file:
-    dest: '/etc/letsencrypt/certs'
+    dest: "/etc/letsencrypt/certs"
     mode: 755
     state: directory
 
 - name: Create directory for CSRs
   file:
-    dest: '/etc/letsencrypt/csr'
+    dest: "/etc/letsencrypt/csr"
     mode: 755
     state: directory

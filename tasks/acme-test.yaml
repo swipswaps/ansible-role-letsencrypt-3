@@ -13,7 +13,7 @@
 
 - name: Install Docker
   package:
-    name: '{{ docker_package }}'
+    name: "{{ docker_package }}"
 
 - name: Make sure docker.service is running
   service:
@@ -23,7 +23,7 @@
 - name: Clone boulder source
   git:
     repo: https://github.com/letsencrypt/boulder
-    dest: {{ le_testing_dir }}
+    dest: "{{ le_testing_dir }}"
     # Version stubbed since they modify the compose file and yaml files very often.
     version: release-2019-06-28
     force: yes
@@ -32,28 +32,28 @@
 - name: Override challenge ports to normal (80,443)
   copy:
     src: va.json
-    dest: {{ le_testing_dir }}/test/config/va.json
+    dest: "{{ le_testing_dir }}/test/config/va.json"
     
 - name: Override FAKEDNS to resolve to docker interface
   copy:
     src: docker-compose.yml.boulder
-    dest: {{ le_testing_dir }}/docker-compose.yml
+    dest: "{{ le_testing_dir }}/docker-compose.yml"
 
 - name: Override rate limits for boulder server
   copy:
     src: rate-limit-policies.yml
-    dest: {{ le_testing_dir }}/test/rate-limit-policies.yml
+    dest: "{{ le_testing_dir }}/test/rate-limit-policies.yml"
 
 # Needed to start containers since two of them need write access.
 - name: Set SELinux context
   shell: chcon -Rt container_file_t {{ le_testing_dir }}
-  when: ansible_os_family == 'RedHat'
+  when: ansible_os_family == "RedHat"
 
 - name: Start boulder server (This takes a long time. Seriously, go get some coffee)
   shell: > 
     PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
     docker-compose up -d
   args:
-    chdir: {{ le_testing_dir }}
+    chdir: "{{ le_testing_dir }}"
     executable: /bin/bash
   become: true

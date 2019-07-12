@@ -6,25 +6,25 @@
     state: directory
 
 # Manually generate CSR
-- name: Generate {{ vhost['servername'] }} CSR
+- name: Generate {{ vhost["servername"] }} CSR
   command: >
     openssl req -new -key {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}
     -subj /CN={{ vhost["servername"] }} 
-    -out /etc/letsencrypt/csr/{{ vhost['servername'] }}.csr
+    -out /etc/letsencrypt/csr/{{ vhost["servername"] }}.csr
 
 # Manually generate self-signed cert
-- name: Generate self-signed cert for {{ vhost['servername'] }} 
+- name: Generate self-signed cert for {{ vhost["servername"] }} 
   command: > 
     openssl x509 -signkey {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}
-    -in /etc/letsencrypt/csr/{{ vhost['servername'] }}.csr
+    -in /etc/letsencrypt/csr/{{ vhost["servername"] }}.csr
     -req -days 3650
-    -out /etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem
+    -out /etc/letsencrypt/live/{{ vhost["servername"] }}/cert.pem
   args:
-    creates: /etc/letsencrypt/live/{{ vhost['servername'] }}/cert.pem
+    creates: /etc/letsencrypt/live/{{ vhost["servername"] }}/cert.pem
   notify: restart apache
 
 # Prevent overwriting existing privkey symlink
-- name: stat key for {{ vhost['servername'] }} 
+- name: stat key for {{ vhost["servername"] }} 
   stat:
     path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/privkey.pem"
   register: key_file
@@ -39,22 +39,22 @@
   notify: restart apache
 
 # Prevent overwriting existing chain symlink
-- name: Stat chain for {{ vhost['servername'] }} 
+- name: Stat chain for {{ vhost["servername"] }} 
   stat:
-    path: '/etc/letsencrypt/live/{{ vhost["servername"] }}/chain.pem'
+    path: "/etc/letsencrypt/live/{{ vhost['servername'] }}/chain.pem"
   register: chain_file
 
 # Link bogus chain to the chain copied over before this task file was included
-- name: Link chain for {{ vhost['servername'] }} 
+- name: Link chain for {{ vhost["servername"] }} 
   file:
-    dest: '/etc/letsencrypt/live/{{ vhost["servername"] }}/chain.pem'
+    dest: "/etc/letsencrypt/live/{{ vhost['servername'] }}/chain.pem"
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
     state: link
   when: not chain_file.stat.exists
   notify: restart apache
 
 # Generate script that should be ran once DNS cutover happens for this specific domain
-- name: Generate self-signed -> LetsEncrypt migration script for {{ vhost['servername'] }} 
+- name: Generate self-signed -> LetsEncrypt migration script for {{ vhost["servername"] }} 
   template:
     src: cutover.sh.j2
     dest: "{{ le_migrate_script_basepath }}/{{ le_migrate_script_prefix }}-{{ vhost['servername'] }}.sh"
