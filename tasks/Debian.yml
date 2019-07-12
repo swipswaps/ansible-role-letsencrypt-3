@@ -1,6 +1,6 @@
 - name: Running update-ca-certificates
-  become: true
   shell: update-ca-certificates
+  become: true
 
 - name: update apt cache
   apt:

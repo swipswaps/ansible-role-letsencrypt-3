@@ -8,24 +8,24 @@
   include_tasks: "{{ ansible_os_family }}.yml"
 
 - name: Initialize system paths and permissions and base packages
-  become: true
   import_tasks: init.yaml
+  become: true
   tags:
     - letsencrypt
 
 - name: Generate root key
-  become: true
   shell: openssl genrsa -out {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }} 4096
   args:
     creates: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
+  become: true
   tags:
     - letsencrypt
 
 - name: Create bogus chain.pem to appease apache
-  become: true
   copy:
     content: "bogus"
     dest: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
+  become: true
   tags:
     - letsencrypt
 
@@ -43,10 +43,10 @@
     - letsencrypt
 
 - name: Add cronjob for cert renewals
-  become: true
   cron: 
     day: '*/7'
     job: certbot renew --post-hook "systemctl reload {{ le_webserver_unit_name }}"
+  become: true
   tags:
     - letsencrypt
 

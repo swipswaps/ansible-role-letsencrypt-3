@@ -7,7 +7,7 @@
 
 - name: Create certbot virtualenv and install certbot
   pip:
-    virtualenv: /root/.certbot_env
+    virtualenv: "{{ le_certbot_venv }}"
     name:
       - certbot
 
