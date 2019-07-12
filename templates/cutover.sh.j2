@@ -8,7 +8,7 @@ LE_PATH='/etc/letsencrypt'
 WEBROOT='{{ vhost['documentroot'] }}'
 PREHOOK="rm -rf /etc/letsencrypt/live/{{ vhost['servername'] }}"
 DOMAIN='{{ vhost['servername'] }}'
-CERTBOT='/root/.certbot_env/bin/certbot'
+CERTBOT='{{ le_certbot_venv }}/bin/certbot'
 
 # Legally ripped from https://www.shellscript.sh/tips/banner/
 banner()
@@ -34,7 +34,7 @@ reload_server() {
 ################ BEGIN SCRIPT ################
 
 # Enter virtualenv for certbot
-. /root/.certbot_env/bin/activate
+. {{ le_certbot_venv }}/bin/activate
 
 # Set SERVER if there is a web server listening on port 4000
 # SERVER will be null variable if in production
