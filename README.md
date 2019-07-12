@@ -54,19 +54,21 @@ Role Variables
 | Variables | Description | Default |
 |-|-|-|
 |`le_admin_mailto`|Email address for LetsEncrypt to send notices about protocol changes and expiry notices|`sysops@tag1consulting.com`| 
+|`le_certbot_venv`|Path to virtualenv that contains certbot and its dependencies|`/root/.certbot_virtualenv`|
 |`le_hosts_ssl`|List of hosts to generate self-signed certs and migration scripts for. This array of hashes only needs to have the `servername` and `documentroot` variables set. See the example playbook for an example.|`None`|
 |`le_migrate_script_basepath`|Directory to store the migration scripts|`/root/`|
 |`le_migrate_script_prefix`|Prefix to script filename|`migrate`|
 |`le_selfsign_base_dir`|Directory to store all files related to self-signing certificates|`/etc/ssl/`|
 |`le_selfsign_key_name`|Name of file in `le_selfsign_base_dir` to do all signing with|`root-key.pem`|
 |`le_selfsign_chain_name`|Name of chain file in `le_selfsign_base_dir`. It contains no private information|`fake-chain.pem`|
+|`le_testing`|Determines whether a acme testing server gets stood up| `false`|
+|`le_testing_dir`|Path to clone testing server code|`/tmp/boulder`|
 |`le_webserver_unit_name`|Name of systemd unit to reload after acme challenge|`apache2`|
-|`le_testing`|Determines whether a acme testing server gets stood up|`None`|
 
 Example Playbook
 ----------------
 
-Run the role with the `le_testing` varieble set to `true` in testing, run it normally in production. The `le_testing` variable will setup a local
+Run the role with the `le_testing` variable set to `true` in testing, run it normally in production. The `le_testing` variable will setup a local
 ACME server with nearly unlimited rates and the cutover scripts will use that instead of LetsEncrypt's servers.
 
 In `host_vars/test.com`:
@@ -108,9 +110,9 @@ In a tasks file:
 - name: Setup letsencrypt
   import_role: 
     name: 
+      # Most webservers fail to start the webserver if there are no certs installed yet.
       - tag1-letsencrypt
-      # The letsencrypt role should be ran before intalling and starting a webserver
-      # geerlingguy.apache will fail to start the webserver if there are no certs installed yet.
+      # Now that there are certs and keys, the webserver can be brought up
       - some_webserver_role
 ```
 
@@ -131,7 +133,7 @@ Testing
 Before running `vagrant provision` or `vagrant up`, make sure there is a vagrant-ansible.vars file with the following content:
 
 ``` yaml
-testing: true
+le_testing: true
 ```
 
 This will ensure that the acme testing server is stood up. Then, provision the vm. Take any notes about getting coffee seriously.
