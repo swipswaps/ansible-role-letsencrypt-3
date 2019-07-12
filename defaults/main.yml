@@ -1,10 +1,12 @@
 ---
 # defaults file for tag1-letsencrypt
 le_admin_mailto: sysops@tag1consulting.com
+le_certbot_venv: /root/.certbot_virtualenv
 le_migrate_script_basepath: /root/
 le_migrate_script_prefix: migrate
 le_selfsign_base_dir: /etc/ssl/
 le_selfsign_key_name: root-key.pem
 le_selfsign_chain_name: fake-chain.pem
 le_testing: false
+le_testing_dir: /tmp/boulder
 le_webserver_unit_name: apache2
