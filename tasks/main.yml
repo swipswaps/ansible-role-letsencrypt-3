@@ -47,6 +47,8 @@
   cron: 
     day: '*/7'
     job: certbot renew --post-hook "systemctl reload {{ le_webserver_unit_name }}"
+  tags:
+    - letsencrypt
 
 - name: Setup boulder server for testing
   import_tasks: acme-test.yaml
