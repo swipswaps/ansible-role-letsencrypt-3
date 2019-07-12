@@ -45,7 +45,7 @@
 - name: Add cronjob for cert renewals
   cron: 
     day: "*/7"
-    job: certbot renew --post-hook "systemctl reload {{ le_webserver_unit_name }}"
+    job: "{{ le_certbot_venv }}/bin/python {{ le_certbot_venv }}/bin/certbot renew --post-hook 'systemctl reload {{ le_webserver_unit_name }}'"
   become: true
   tags:
     - letsencrypt
