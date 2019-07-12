@@ -13,14 +13,6 @@
   tags:
     - letsencrypt
 
-- name: Setup pip
-  include_role:
-    name: "geerlingguy.pip"
-  vars:
-    pip_install_packages:
-      - name: docker
-      - name: docker-compose
-
 - name: Generate root key
   become: true
   shell: openssl genrsa -out {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }} 4096
