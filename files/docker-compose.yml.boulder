@@ -1,0 +1,106 @@
+version: '3'
+services:
+    boulder:
+        # To minimize fetching this should be the same version used below
+        image: letsencrypt/boulder-tools-go${TRAVIS_GO_VERSION:-1.12}:2019-04-08
+        environment:
+            FAKE_DNS: 172.17.0.1
+            PKCS11_PROXY_SOCKET: tcp://boulder-hsm:5657
+            BOULDER_CONFIG_DIR: test/config
+            GO111MODULE: "on"
+            GOFLAGS: "-mod=vendor"
+        volumes:
+          - .:/go/src/github.com/letsencrypt/boulder
+          - ./.gocache:/root/.cache/go-build
+        networks:
+          bluenet:
+            ipv4_address: 10.77.77.77
+            aliases:
+              - sa1.boulder
+              - ca1.boulder
+              - ra1.boulder
+              - va1.boulder
+              - publisher1.boulder
+              - ocsp-updater.boulder
+              - admin-revoker.boulder
+              - nonce1.boulder
+          rednet:
+            ipv4_address: 10.88.88.88
+            aliases:
+              - sa2.boulder
+              - ca2.boulder
+              - ra2.boulder
+              - va2.boulder
+              - publisher2.boulder
+              - nonce2.boulder
+        # Use sd-test-srv as a backup to Docker's embedded DNS server
+        # (https://docs.docker.com/config/containers/container-networking/#dns-services).
+        # If there's a name Docker's DNS server doesn't know about, it will
+        # forward the query to this IP (running sd-test-srv). We have
+        # special logic there that will return multiple IP addresses for
+        # service names.
+        dns: 10.77.77.77
+        ports:
+          - 4000:4000 # ACME
+          - 4001:4001 # ACMEv2
+          - 4002:4002 # OCSP
+          - 4003:4003 # OCSP
+          - 4430:4430 # ACME via HTTPS
+          - 4431:4431 # ACMEv2 via HTTPS
+          - 8055:8055 # dns-test-srv updates
+        depends_on:
+          - bhsm
+          - bmysql
+        entrypoint: test/entrypoint.sh
+        working_dir: /go/src/github.com/letsencrypt/boulder
+    bhsm:
+        # To minimize fetching this should be the same version used above
+        image: letsencrypt/boulder-tools-go${TRAVIS_GO_VERSION:-1.12}:2019-04-08
+        environment:
+            PKCS11_DAEMON_SOCKET: tcp://0.0.0.0:5657
+        command: /usr/local/bin/pkcs11-daemon /usr/lib/softhsm/libsofthsm2.so
+        expose:
+          - 5657
+        networks:
+          bluenet:
+            aliases:
+              - boulder-hsm
+    bmysql:
+        image: mariadb:10.3
+        networks:
+          bluenet:
+            aliases:
+              - boulder-mysql
+        environment:
+            MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        command: mysqld --bind-address=0.0.0.0
+        logging:
+            driver: none
+    netaccess:
+        image: letsencrypt/boulder-tools-go${TRAVIS_GO_VERSION:-1.12}:2019-04-08
+        environment:
+            GO111MODULE: "on"
+            GOFLAGS: "-mod=vendor"
+        networks:
+          - bluenet
+        volumes:
+          - .:/go/src/github.com/letsencrypt/boulder
+        working_dir: /go/src/github.com/letsencrypt/boulder
+        entrypoint: test/entrypoint-netaccess.sh
+        depends_on:
+          - bmysql
+
+networks:
+  bluenet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.77.77.0/24
+  rednet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.88.88.0/24
+

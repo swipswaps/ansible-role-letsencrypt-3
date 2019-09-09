@@ -1,0 +1,37 @@
+---
+# Setup directory structure and set permissions
+
+- name: Install python-virtualenv
+  package:
+    name: python-virtualenv
+
+- name: Create certbot virtualenv and install certbot
+  pip:
+    virtualenv: "{{ le_certbot_venv }}"
+    name:
+      - certbot
+
+- name: Create directory for selfsign key
+  file:
+    dest: "{{ le_selfsign_base_dir  }}"
+    mode: 755
+    recurse: true
+    state: directory
+
+- name: Create directory for keys
+  file:
+    dest: "/etc/letsencrypt/private"
+    mode: 755
+    state: directory
+
+- name: Create directory for certs
+  file:
+    dest: "/etc/letsencrypt/certs"
+    mode: 755
+    state: directory
+
+- name: Create directory for CSRs
+  file:
+    dest: "/etc/letsencrypt/csr"
+    mode: 755
+    state: directory

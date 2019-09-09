@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# This script will flush out the self-signed certificate for {{ vhost['servername'] }} and replace it
+# with a valid LetsEncrypt certificate, then reload apache
+
+EMAIL='{{ le_admin_mailto }}'
+LE_PATH='/etc/letsencrypt'
+WEBROOT='{{ vhost['documentroot'] }}'
+PREHOOK="rm -rf /etc/letsencrypt/live/{{ vhost['servername'] }}"
+DOMAIN='{{ vhost['servername'] }}'
+CERTBOT='{{ le_certbot_venv }}/bin/certbot'
+
+# Legally ripped from https://www.shellscript.sh/tips/banner/
+banner()
+{
+  echo "+------------------------------------------------------------------------------------------------------+"
+  printf "| %-100s |\n" "`date`"
+  echo "|                                                                                                      |"
+  printf "|`tput bold` %-100s `tput sgr0`|\n" "$@"
+  echo "+------------------------------------------------------------------------------------------------------+"
+}
+
+reload_server() {
+	banner "ATTEMPTING TO RELOAD {{ le_webserver_unit_name | upper }}"
+
+	if systemctl reload {{ le_webserver_unit_name }} ; then
+		banner "{{ le_webserver_unit_name | upper }} WAS RELOADED SUCCESSFULLY."
+	else
+		banner "{{ le_webserver_unit_name | upper }} FAILED TO RELOAD."
+		FAIL=1
+	fi
+}
+
+################ BEGIN SCRIPT ################
+
+# Enter virtualenv for certbot
+. {{ le_certbot_venv }}/bin/activate
+
+# Set SERVER if there is a web server listening on port 4000
+# SERVER will be null variable if in production
+if curl -s localhost:4000 > /dev/null ; then
+  SERVER=(--server http://localhost:4000/directory)
+fi
+
+# Check if a LetsEncrypt cert for the domain already exists.
+if $CERTBOT certificates | grep -P "Certificate Name: ${DOMAIN}$" >/dev/null ; then
+  banner "YOU ALREADY HAVE A VALID LETSENCRYPT CERTIFICATE FOR $DOMAIN."
+  exit 0
+fi
+
+# Checking if apache is running already.
+# If apache isn't running or reloading properly, this script might break things.
+
+banner "CHECKING {{ le_webserver_unit_name | upper }} STATUS"
+reload_server
+
+if ! [ -z $FAIL ]; then
+	banner "MAKE SURE {{ le_webserver_unit_name | upper }} IS SETUP PROPERLY BEFORE RUNNING THIS SCRIPT AGAIN."
+	exit 1
+fi
+
+# Dry run first (if in production)
+if [ -z $SERVER ]; then
+	banner "ATTEMPTING DRY RUN BEFORE OVERWRITING SELF-SIGNED CERTIFICATE FOR $DOMAIN."
+	# Run dry-run without prehook to preserve self-signed certificates.
+  if $CERTBOT certonly --webroot --dry-run --agree-tos --no-eff-email --email $EMAIL -w $WEBROOT --cert-name $DOMAIN  -d $DOMAIN ; then
+		banner "DRY RUN SUCCESSFUL. CONTINUING ON TO OBTAIN LETSENCRYPT CERTIFICATE FOR $DOMAIN."
+  else
+		# Set FAIL variable after dry-run failed. 
+		banner "DRY RUN FAILED. EXITING IMMEDIATELY."
+		exit 1
+  fi
+else
+	banner "DETECTED BOULDER SERVER. SKIPPING DRY RUN."
+fi
+
+# Backup all Certs
+banner "BACKING UP $LE_PATH TO /root."
+cp -R --preserve=links "$LE_PATH" /root
+
+banner "ATTEMPTING TO GET LETSENCRYPT CERTIFICATE FOR $DOMAIN"
+
+if $CERTBOT certonly --webroot --agree-tos --no-eff-email --email $EMAIL -w $WEBROOT --cert-name $DOMAIN  -d $DOMAIN --pre-hook "$PREHOOK" ${SERVER[@]} ; then
+	banner "LETSENCRYPT CERTIFICATE INSTALLED."
+	reload_server
+else
+	banner "LETSENCRYPT CERTIFICATE FAILED TO INSTALL."
+	# Set FAIL because the certbot prehook I set deletes certificates and need to restore from backup.
+	FAIL=1
+fi
+
+#If any part of this script fails, restore backup certificates
+if ! [ -z $FAIL ]; then
+	banner "RESTORING "$LE_PATH" FROM BACKUP"
+	
+	# Restore from backup
+	rm -rf "$LE_PATH"/*
+	mv -f /root/$(basename "$LE_PATH")/* "$LE_PATH"
+
+	reload_server
+fi
+
+# Delete backup
+rm -rf /root/$(basename "$LE_PATH")
