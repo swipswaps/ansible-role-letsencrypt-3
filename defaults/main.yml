@@ -1,7 +1,13 @@
 ---
 # defaults file for tag1-letsencrypt
-le_admin_mailto: sysops@tag1consulting.com
+le_admin_mailto: root
 le_certbot_venv: /root/.certbot_virtualenv
+le_cronjob_name: LetsEncryptRenewal
+le_cronjob_day: "*/7"
+le_cronjob_minute: "7"
+le_cronjob_hour: "7"
+le_cronjob_month: "*"
+le_cronjob_renewal: true
 le_migrate_script_basepath: /root/
 le_migrate_script_prefix: migrate
 le_selfsign_base_dir: /etc/ssl/
