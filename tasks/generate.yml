@@ -1,3 +1,13 @@
+- name: Generate root key
+  shell: openssl genrsa -out {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }} 4096
+  args:
+    creates: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
+
+- name: Create bogus chain.pem to appease apache
+  copy:
+    content: "bogus"
+    dest: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
+
 - name: Create directory for keys certs and chains
   file:
     path: "/etc/letsencrypt/live/{{ vhost['servername'] }}"
@@ -21,7 +31,7 @@
     -out /etc/letsencrypt/live/{{ vhost["servername"] }}/cert.pem
   args:
     creates: /etc/letsencrypt/live/{{ vhost["servername"] }}/cert.pem
-  notify: restart apache
+  notify: restart webserver
 
 # Prevent overwriting existing privkey symlink
 - name: stat key for {{ vhost["servername"] }} 
@@ -36,7 +46,7 @@
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
     state: link
   when: not key_file.stat.exists
-  notify: restart apache
+  notify: restart webserver
 
 # Prevent overwriting existing chain symlink
 - name: Stat chain for {{ vhost["servername"] }} 
@@ -51,7 +61,7 @@
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
     state: link
   when: not chain_file.stat.exists
-  notify: restart apache
+  notify: restart webserver
 
 # Generate script that should be ran once DNS cutover happens for this specific domain
 - name: Generate self-signed -> LetsEncrypt migration script for {{ vhost["servername"] }} 

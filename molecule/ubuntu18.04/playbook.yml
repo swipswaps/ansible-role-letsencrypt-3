@@ -1,0 +1,16 @@
+---
+- name: Converge
+  hosts: all
+  roles:
+    - geerlingguy.apache
+    - ansible-role-letsencrypt
+  vars:
+    apache_vhosts_ssl:
+      - documentroot: /var/www/html
+        servername: test.me
+        certificate_file: /etc/letsencrypt/live/test.me/cert.pem
+        certificate_key_file: /etc/letsencrypt/live/test.me/privkey.pem
+        certificate_chain_file: /etc/letsencrypt/live/test.me/chain.pem
+    le_hosts_ssl: "{{ apache_vhosts_ssl }}"
+    le_testing: yes
+    ansible_become: true

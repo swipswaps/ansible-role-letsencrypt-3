@@ -1,0 +1,31 @@
+---
+- name: Converge
+  hosts: all
+  pre_tasks:
+    - name: Install net-tools
+      yum:
+        name: net-tools
+      become: true
+    # Needed to install python-pip
+    - name: Add EPEL repo
+      import_role:
+        name: geerlingguy.repo-epel
+      become: true
+    - name: Install Pip
+      package:
+        name: python-pip
+      become: true
+  roles:
+    - role: ansible-role-letsencrypt
+      become: true
+    - role: geerlingguy.apache
+      become: true
+  vars:
+    apache_vhosts_ssl:
+      - documentroot: /var/www/html
+        servername: test.me
+        certificate_file: /etc/letsencrypt/live/test.me/cert.pem
+        certificate_key_file: /etc/letsencrypt/live/test.me/privkey.pem
+        certificate_chain_file: /etc/letsencrypt/live/test.me/chain.pem
+    le_hosts_ssl: "{{ apache_vhosts_ssl }}"
+    le_testing: yes

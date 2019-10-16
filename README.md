@@ -1,18 +1,29 @@
-Letsencrypt
-===========
+# Letsencrypt
 
 Configure self-signed certificates and generate scripts to migrate to LetsEncrypt certificates on any webserver. The webserver
 will need to be configured to use the certs, chains, and keys in `/etc/letsencrypt/live/<ServerName>/{chain,privkey,cert}.pem`
 
-When you're ready to switch over to LetsEncrypt, just run the migration script for the vhost. It is built to handle
-failure, and will backup the certs and restore them if anything goes wrong.
+When you're ready to switch over to LetsEncrypt, just run the templated migration script for the vhost as `root`. It is
+built to handle failure, and will backup the certs and restore them if anything goes wrong.
 
-Usage
------
+This role is currently best used on low-traffic webserving stacks where SSL/TLS and webserving are on the same machine.
 
-The new LetsEncrypt role sets up self-signed certificate, key, and chain files for each ssl-enabled vhost that is defined in the `le_hosts_ssl` variable. 
-Since this role was initially developed while using `geerlingguy.apache`, it is super easy to setup when using that
-role. Just set `le_hosts_ssl` to `apache_vhosts_ssl`.
+## Software Dependencies
+
+The only hard dependency for this role is `pip`. 
+
+Optionally, `docker` and `docker-compose` are dependencies if you want to manage those yourself. You might want to do this
+if you're running containers and install a specific version of `docker` and `docker-compose`. If this is the case, set
+`le_manage_docker` to `false` and this role will not try to install `docker` and `docker-compose`. This is only relevant
+if you're running in testing mode, with `le_testing` set to `true`.
+
+## Usage
+
+This role sets up self-signed certificate, key, and chain files for each ssl-enabled vhost that is defined in the
+`le_hosts_ssl` variable. Then, it generates a "migration script" for each vhost that can be ran once DNS is updated or
+the .acme-challenge routes are proxied to the machine this is ran against. Since this role was initially developed while
+using `geerlingguy.apache`, it is super easy to setup when using that role. Just set `le_hosts_ssl` to
+`apache_vhosts_ssl`.
 
 ```yaml
 le_hosts_ssl: "{{ apache_vhosts_ssl }}"
@@ -48,27 +59,26 @@ In the case of the above example, the tag1-letsencrypt role will read the
        - Restores `/etc/letsencrypt` from backup if the reload fails then reloads the webserver again
 
 
-Role Variables
---------------
+## Role Variables
 
 | Variables | Description | Default |
 |-|-|-|
-|`le_admin_mailto`|Email address for LetsEncrypt to send notices about protocol changes and expiry notices|`sysops@tag1consulting.com`| 
-|`le_certbot_venv`|Path to virtualenv that contains certbot and its dependencies|`/root/.certbot_virtualenv`|
-|`le_hosts_ssl`|List of hosts to generate self-signed certs and migration scripts for. This array of hashes only needs to have the `servername` and `documentroot` variables set. See the example playbook for an example.|`None`|
-|`le_migrate_script_basepath`|Directory to store the migration scripts|`/root/`|
-|`le_migrate_script_prefix`|Prefix to script filename|`migrate`|
-|`le_selfsign_base_dir`|Directory to store all files related to self-signing certificates|`/etc/ssl/`|
-|`le_selfsign_key_name`|Name of file in `le_selfsign_base_dir` to do all signing with|`root-key.pem`|
-|`le_selfsign_chain_name`|Name of chain file in `le_selfsign_base_dir`. It contains no private information|`fake-chain.pem`|
-|`le_testing`|Determines whether a acme testing server gets stood up| `false`|
-|`le_testing_dir`|Path to clone testing server code|`/tmp/boulder`|
-|`le_webserver_unit_name`|Name of systemd unit to reload after acme challenge|`apache2`|
+|`le_admin_mailto`|Email address for LetsEncrypt to send notices about protocol changes and expiry notices|`root`| 
+|`le_certbot_venv`|Path to python virtualenv that contains certbot and its dependencies|`/root/.certbot_virtualenv`|
+|`le_hosts`|List of hosts to generate self-signed certs and migration scripts for. This array of hashes only needs to have the `servername` and `documentroot` variables set. See the example playbook.|`None`|
+|`le_manage_docker`| Whether to install docker in this role or not. Docker is only installed for the test acme server when `le_testing` is `true`| `true`|
+|`le_migrate_script_basepath`|Directory to store the migration scripts.|`/root/`|
+|`le_migrate_script_prefix`|Prefix to script filename.|`migrate`|
+|`le_selfsign_base_dir`|Directory to store all files related to self-signing certificates.|`/etc/ssl/`|
+|`le_selfsign_key_name`|Name of file in `le_selfsign_base_dir` to do all signing with.|`self-sign-root.pem`|
+|`le_selfsign_chain_name`|Name of chain file in `le_selfsign_base_dir`. It contains no private information.|`fake-chain.pem`|
+|`le_testing`|Determines whether a acme testing server gets stood up.| `false`|
+|`le_testing_dir`|Path to clone ACME server code.|`/tmp/boulder`|
+|`le_webserver_unit_name`|Name of systemd unit to reload after acme challenge.|`httpd` on RHEL/CentOS `apache2` on Debian/Ubuntu|
 
-Example Playbook
-----------------
+## Example Playbook
 
-Run the role with the `le_testing` variable set to `true` in testing, run it normally in production. The `le_testing` variable will setup a local
+Run the role with the `le_testing` variable set to `true` in testing, `false` in production. The `le_testing` variable will setup a local
 ACME server with nearly unlimited rates and the cutover scripts will use that instead of LetsEncrypt's servers.
 
 In `host_vars/test.com`:
@@ -123,12 +133,11 @@ In a playbook:
 ```YAML
 - hosts: webservers
   roles:
-     - tag1-letsencrypt
+     - tag1.letsencrypt
      - some_webserver_role
 ```
 
-Testing
--------
+## Testing
 
 Before running `vagrant provision` or `vagrant up`, make sure there is a vagrant-ansible.vars file with the following content:
 
@@ -159,19 +168,16 @@ If you see the following line, then it worked.
 
 Any subsequent runs of  `/root/migrate-test.com.sh` will greet you with an error message saying you already have a certificate for `test.com`
 
-Dependencies
-------------
+## Dependencies
 
 - A webserver with a systemd unit that supports reloading configuration.
 - `geerlingguy.pip`
 
 
-License
--------
+## License
 
 BSD
 
-Author
-------
+## Author
 
 Tag1 Consulting

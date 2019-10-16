@@ -15,4 +15,5 @@ le_selfsign_key_name: root-key.pem
 le_selfsign_chain_name: fake-chain.pem
 le_testing: false
 le_testing_dir: /tmp/boulder
-le_webserver_unit_name: apache2
+
+le_manage_docker: yes
