@@ -7,16 +7,20 @@ driver:
   name: vagrant
   provider:
     name: virtualbox
+
 lint:
   name: yamllint
 platforms:
   - name: instance
-    box: ubuntu/xenial64
+    box: ubuntu/bionic64
+    memory: 2048
 provisioner:
   name: ansible
   lint:
     name: ansible-lint
 verifier:
-  name: testinfra
+  name: inspec
   lint:
-    name: flake8
+    name: rubocop
+    options:
+      auto-correct: True

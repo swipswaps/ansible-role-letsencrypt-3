@@ -1,2 +1,2 @@
 le_docker_package: docker.io
-le_webserver_unit_name: apache2
+le_webserver_service: apache2

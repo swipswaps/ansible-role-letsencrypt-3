@@ -18,6 +18,8 @@
   roles:
     - role: ansible-role-letsencrypt
       become: true
+      tags:
+        - molecule-idempotence-notest
     - role: geerlingguy.apache
       become: true
   vars:
@@ -27,5 +29,8 @@
         certificate_file: /etc/letsencrypt/live/test.me/cert.pem
         certificate_key_file: /etc/letsencrypt/live/test.me/privkey.pem
         certificate_chain_file: /etc/letsencrypt/live/test.me/chain.pem
-    le_hosts_ssl: "{{ apache_vhosts_ssl }}"
+    le_hosts:
+      - domain: test.me
+        directory: /var/www/html
     le_testing: yes
+    le_admin_mailto: hunter@tag1consulting.com

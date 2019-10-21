@@ -1,6 +1,4 @@
 ---
-# tasks file for tag1-letsencrypt
-
 - name: Include OS-specific variables
   include_vars: "{{ ansible_os_family }}.yml"
 
@@ -13,7 +11,7 @@
 - name: "Setup certs, chains, and private key paths"
   include_tasks: 
     file: generate.yml
-  loop: "{{ le_hosts_ssl }}"
+  loop: "{{ le_hosts }}"
   loop_control:
     loop_var: vhost
 
@@ -26,8 +24,8 @@
     month: "{{ le_cronjob_month }}"
     job: >
       "cd {{ le_certbot_venv}} &&
-      ./bin/activate && 
-      {{ le_certbot_venv }}/bin/python {{ le_certbot_venv }}/bin/certbot renew --post-hook 'systemctl reload {{ le_webserver_unit_name }}'"
+      . ./bin/activate && 
+      {{ le_certbot_venv }}/bin/python {{ le_certbot_venv }}/bin/certbot renew --post-hook 'systemctl reload {{ le_webserver_service }}'"
   when: le_cronjob_renewal
 
 - name: Setup boulder server for testing

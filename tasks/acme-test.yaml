@@ -3,7 +3,7 @@
 # This allows us to use ACME protocol to spoof a valid LetsEncrypt endpoint locally
 # to mimic production usage of LetsEncrypt cutover scripts
 
-- name: Install Docker
+- name: Install docker
   package:
     name: "{{ le_docker_package }}"
   when: le_manage_docker
@@ -39,17 +39,28 @@
     src: docker-compose.yml.boulder
     dest: "{{ le_testing_dir }}/docker-compose.yml"
 
-- name: Override rate limits for boulder server
+- name: Override rate limits for boulder server (fake acme)
   copy:
     src: rate-limit-policies.yml
     dest: "{{ le_testing_dir }}/test/rate-limit-policies.yml"
+
+#- name: Override mysql connection parameters for boulder server (fake acme)
+  #copy:
+    #src: sa_db_users.sql
+    #dest: "{{ le_testing_dir }}/test/sa_db_users.sql"
 
 # Needed to start containers since two of them need write access.
 - name: Set SELinux context
   shell: chcon -Rt container_file_t {{ le_testing_dir }}
   when: ansible_os_family == "RedHat"
 
-- name: Start boulder server (This takes a long time. Seriously, go get some coffee)
+#- name: Override mysql connection attempts
+  #lineinfile:
+    #dest: "{{ le_testing_dir }}/test/entrypoint.sh"
+    #regexp: 120
+    #line: '\t\tlocal max_tries="300"'
+
+- name: Start boulder server (Fake ACME Server)
   shell: > 
     PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
     docker-compose up -d
