@@ -12,7 +12,7 @@ describe file('/root/migrate-test.me.sh') do
 end
 
 describe port(4000) do
-  its('processes') { should include 'docker-proxy-cu' }
+  its('processes') { should include 'docker-proxy' }
 end
 
 # This will get the certificate from the acme test server

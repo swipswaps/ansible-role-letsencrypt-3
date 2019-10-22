@@ -13,7 +13,7 @@ lint:
 platforms:
   - name: instance
     box: ubuntu/bionic64
-    memory: 2048
+    memory: 1048
 provisioner:
   name: ansible
   lint:
