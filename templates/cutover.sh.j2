@@ -40,13 +40,6 @@ reload_server() {
 # SERVER will be null variable if in production
 if curl -s localhost:4000 > /dev/null ; then
   SERVER=(--server http://localhost:4000/directory)
-  {% if le_testing %}
-
-else
-  banner "NO FAKE ACME SERVER DETECTED. ABORTING."
-  exit 1
-
-  {% endif %}
 fi
 
 # Check if a LetsEncrypt cert for the domain already exists.
