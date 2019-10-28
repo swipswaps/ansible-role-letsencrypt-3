@@ -4,8 +4,8 @@
     "debugAddr": ":8004",
     "portConfig": {
       "httpPort": 80,
-      "httpsPort": 433,
-      "tlsPort": 433
+      "httpsPort": 443,
+      "tlsPort": 443
     },
     "maxConcurrentRPCServerRequests": 100000,
     "dnsTries": 3,

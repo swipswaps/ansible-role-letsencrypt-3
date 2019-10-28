@@ -1,2 +1,6 @@
 ---
 # handlers file for tag1-letsencrypt
+- name: restart webserver
+  service:
+    name: "{{ le_webserver_service }}"
+    state: restarted

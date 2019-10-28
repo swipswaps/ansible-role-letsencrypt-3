@@ -1,9 +1,10 @@
 ---
 # Setup directory structure and set permissions
 
-- name: Install python-virtualenv
-  package:
-    name: python-virtualenv
+- name: Install virtualenv
+  pip:
+    name:
+      - virtualenv
 
 - name: Create certbot virtualenv and install certbot
   pip:

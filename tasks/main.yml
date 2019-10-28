@@ -1,6 +1,4 @@
 ---
-# tasks file for tag1-letsencrypt
-
 - name: Include OS-specific variables
   include_vars: "{{ ansible_os_family }}.yml"
 
@@ -9,38 +7,13 @@
 
 - name: Initialize system paths and permissions and base packages
   import_tasks: init.yaml
-  become: true
-  tags:
-    - letsencrypt
-
-- name: Generate root key
-  shell: openssl genrsa -out {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }} 4096
-  args:
-    creates: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
-  become: true
-  tags:
-    - letsencrypt
-
-- name: Create bogus chain.pem to appease apache
-  copy:
-    content: "bogus"
-    dest: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
-  become: true
-  tags:
-    - letsencrypt
 
 - name: "Setup certs, chains, and private key paths"
   include_tasks: 
     file: generate.yml
-    apply:
-      tags:
-        - letsencrypt
-      become: true
-  loop: "{{ le_hosts_ssl }}"
+  loop: "{{ le_hosts }}"
   loop_control:
     loop_var: vhost
-  tags:
-    - letsencrypt
 
 - name: Add cronjob for cert renewals
   cron: 
@@ -49,15 +22,12 @@
     hour: "{{ le_cronjob_hour }}"
     day: "{{ le_cronjob_day }}"
     month: "{{ le_cronjob_month }}"
-    job: "{{ le_certbot_venv }}/bin/python {{ le_certbot_venv }}/bin/certbot renew --post-hook 'systemctl reload {{ le_webserver_unit_name }}'"
-  become: true
+    job: >
+      "cd {{ le_certbot_venv}} &&
+      . ./bin/activate && 
+      {{ le_certbot_venv }}/bin/python {{ le_certbot_venv }}/bin/certbot renew --post-hook 'systemctl reload {{ le_webserver_service }}'"
   when: le_cronjob_renewal
-  tags:
-    - letsencrypt
 
 - name: Setup boulder server for testing
   import_tasks: acme-test.yaml
-  become: true
   when: le_testing
-  tags:
-    - letsencrypt

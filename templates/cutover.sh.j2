@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# This script will flush out the self-signed certificate for {{ vhost['servername'] }} and replace it
+# This script will flush out the self-signed certificate for {{ vhost['domain'] }} and replace it
 # with a valid LetsEncrypt certificate, then reload apache
 
 EMAIL='{{ le_admin_mailto }}'
 LE_PATH='/etc/letsencrypt'
-WEBROOT='{{ vhost['documentroot'] }}'
-PREHOOK="rm -rf /etc/letsencrypt/live/{{ vhost['servername'] }}"
-DOMAIN='{{ vhost['servername'] }}'
+WEBROOT='{{ vhost['directory'] }}'
+PREHOOK="rm -rf /etc/letsencrypt/live/{{ vhost['domain'] }}"
+DOMAIN='{{ vhost['domain'] }}'
 CERTBOT='{{ le_certbot_venv }}/bin/certbot'
 
 # Legally ripped from https://www.shellscript.sh/tips/banner/
@@ -21,12 +21,12 @@ banner()
 }
 
 reload_server() {
-	banner "ATTEMPTING TO RELOAD {{ le_webserver_unit_name | upper }}"
+	banner "ATTEMPTING TO RELOAD {{ le_webserver_service | upper }}"
 
-	if systemctl reload {{ le_webserver_unit_name }} ; then
-		banner "{{ le_webserver_unit_name | upper }} WAS RELOADED SUCCESSFULLY."
+	if systemctl reload {{ le_webserver_service }} ; then
+		banner "{{ le_webserver_service | upper }} WAS RELOADED SUCCESSFULLY."
 	else
-		banner "{{ le_webserver_unit_name | upper }} FAILED TO RELOAD."
+		banner "{{ le_webserver_service | upper }} FAILED TO RELOAD."
 		FAIL=1
 	fi
 }
@@ -51,11 +51,11 @@ fi
 # Checking if apache is running already.
 # If apache isn't running or reloading properly, this script might break things.
 
-banner "CHECKING {{ le_webserver_unit_name | upper }} STATUS"
+banner "CHECKING {{ le_webserver_service | upper }} STATUS"
 reload_server
 
 if ! [ -z $FAIL ]; then
-	banner "MAKE SURE {{ le_webserver_unit_name | upper }} IS SETUP PROPERLY BEFORE RUNNING THIS SCRIPT AGAIN."
+	banner "MAKE SURE {{ le_webserver_service | upper }} IS SETUP PROPERLY BEFORE RUNNING THIS SCRIPT AGAIN."
 	exit 1
 fi
 
@@ -96,6 +96,9 @@ if ! [ -z $FAIL ]; then
 	# Restore from backup
 	rm -rf "$LE_PATH"/*
 	mv -f /root/$(basename "$LE_PATH")/* "$LE_PATH"
+{% if ansible_os_family == 'RedHat' %}
+  restorecon -R "$LE_PATH"
+{% endif %}
 
 	reload_server
 fi

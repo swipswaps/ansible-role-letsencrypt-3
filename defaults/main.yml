@@ -1,6 +1,5 @@
 ---
 # defaults file for tag1-letsencrypt
-le_admin_mailto: root
 le_certbot_venv: /root/.certbot_virtualenv
 le_cronjob_name: LetsEncryptRenewal
 le_cronjob_day: "*/7"
@@ -15,4 +14,5 @@ le_selfsign_key_name: root-key.pem
 le_selfsign_chain_name: fake-chain.pem
 le_testing: false
 le_testing_dir: /tmp/boulder
-le_webserver_unit_name: apache2
+
+le_manage_docker: yes
