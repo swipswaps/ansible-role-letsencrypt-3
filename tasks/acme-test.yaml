@@ -10,7 +10,7 @@
 
 - name: Install docker-compose
   pip:
-    name: 
+    name:
       - docker
       - docker-compose
   when: le_manage_docker
@@ -33,7 +33,7 @@
   copy:
     src: va.json
     dest: "{{ le_testing_dir }}/test/config/va.json"
-    
+
 - name: Override FAKEDNS to resolve to docker interface
   copy:
     src: docker-compose.yml.boulder
@@ -55,7 +55,7 @@
   when: ansible_os_family == "RedHat"
 
 - name: Start boulder server (Fake ACME Server)
-  shell: > 
+  shell: >
     PATH="/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin"
     docker-compose up -d
   args:

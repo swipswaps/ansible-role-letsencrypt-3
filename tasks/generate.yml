@@ -19,12 +19,12 @@
 - name: Generate {{ vhost["domain"] }} CSR
   command: >
     openssl req -new -key {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}
-    -subj /CN={{ vhost["domain"] }} 
+    -subj /CN={{ vhost["domain"] }}
     -out /etc/letsencrypt/csr/{{ vhost["domain"] }}.csr
 
 # Manually generate self-signed cert
-- name: Generate self-signed cert for {{ vhost["domain"] }} 
-  command: > 
+- name: Generate self-signed cert for {{ vhost["domain"] }}
+  command: >
     openssl x509 -signkey {{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}
     -in /etc/letsencrypt/csr/{{ vhost["domain"] }}.csr
     -req -days 3650
@@ -34,13 +34,13 @@
   notify: restart webserver
 
 # Prevent overwriting existing privkey symlink
-- name: stat key for {{ vhost["domain"] }} 
+- name: stat key for {{ vhost["domain"] }}
   stat:
     path: "/etc/letsencrypt/live/{{ vhost['domain'] }}/privkey.pem"
   register: key_file
 
 # Link private key to the key generated before this task file was included
-- name: Link key for {{ vhost['domain'] }} 
+- name: Link key for {{ vhost['domain'] }}
   file:
     dest: "/etc/letsencrypt/live/{{ vhost['domain'] }}/privkey.pem"
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_key_name }}"
@@ -49,13 +49,13 @@
   notify: restart webserver
 
 # Prevent overwriting existing chain symlink
-- name: Stat chain for {{ vhost["domain"] }} 
+- name: Stat chain for {{ vhost["domain"] }}
   stat:
     path: "/etc/letsencrypt/live/{{ vhost['domain'] }}/chain.pem"
   register: chain_file
 
 # Link bogus chain to the chain copied over before this task file was included
-- name: Link chain for {{ vhost["domain"] }} 
+- name: Link chain for {{ vhost["domain"] }}
   file:
     dest: "/etc/letsencrypt/live/{{ vhost['domain'] }}/chain.pem"
     src: "{{ le_selfsign_base_dir }}/{{ le_selfsign_chain_name }}"
@@ -64,7 +64,7 @@
   notify: restart webserver
 
 # Generate script that should be ran once DNS cutover happens for this specific domain
-- name: Generate self-signed -> LetsEncrypt migration script for {{ vhost["domain"] }} 
+- name: Generate self-signed -> LetsEncrypt migration script for {{ vhost["domain"] }}
   template:
     src: cutover.sh.j2
     dest: "{{ le_migrate_script_basepath }}/{{ le_migrate_script_prefix }}-{{ vhost['domain'] }}.sh"
