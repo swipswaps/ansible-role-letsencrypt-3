@@ -12,7 +12,7 @@
   file:
     path: "/etc/letsencrypt/live/{{ vhost['domain'] }}"
     recurse: true
-    mode: 0775
+    mode: "0775"
     state: directory
 
 # Manually generate CSR
@@ -68,4 +68,4 @@
   template:
     src: cutover.sh.j2
     dest: "{{ le_migrate_script_basepath }}/{{ le_migrate_script_prefix }}-{{ vhost['domain'] }}.sh"
-    mode: 0700
+    mode: "0700"
