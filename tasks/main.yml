@@ -9,22 +9,22 @@
   import_tasks: init.yaml
 
 - name: "Setup certs, chains, and private key paths"
-  include_tasks: 
+  include_tasks:
     file: generate.yml
   loop: "{{ le_hosts }}"
   loop_control:
     loop_var: vhost
 
 - name: Add cronjob for cert renewals
-  cron: 
+  cron:
     name: "{{ le_cronjob_name }}"
     minute: "{{ le_cronjob_minute }}"
     hour: "{{ le_cronjob_hour }}"
     day: "{{ le_cronjob_day }}"
     month: "{{ le_cronjob_month }}"
     job: >
-      "cd {{ le_certbot_venv}} &&
-      . ./bin/activate && 
+      "cd {{ le_certbot_venv }} &&
+      . ./bin/activate &&
       {{ le_certbot_venv }}/bin/python {{ le_certbot_venv }}/bin/certbot renew --post-hook 'systemctl reload {{ le_webserver_service }}'"
   when: le_cronjob_renewal
 
