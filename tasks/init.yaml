@@ -1,16 +1,11 @@
 ---
 # Setup directory structure and set permissions
 
-- name: Install virtualenv
-  pip:
-    name:
-      - virtualenv
-
 - name: Create certbot virtualenv and install certbot
   pip:
+    name: certbot
     virtualenv: "{{ le_certbot_venv }}"
-    name:
-      - certbot
+    virtualenv_command: /usr/local/bin/virtualenv
 
 - name: Create directory for selfsign key
   file:
